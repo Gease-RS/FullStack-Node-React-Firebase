@@ -1,16 +1,21 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
-var serviceAccount = require('./util/serviceAccountKey.json');
-var dbURL = require('./util/dbURL');
+const app = require('express')();
+admin.initializeApp();
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: dbURL
-});
+const firebaseConfig = {
+    apiKey: "xxxxxxx",
+    authDomain: "xxxxxxx",
+    databaseURL: "xxxxxxx",
+    projectId: "xxxxxxx",
+    storageBucket: "xxxxxxx",
+    messagingSenderId: "xxxxxxx",
+    appId: "xxxxxxx"
+  };
 
-const express = require('express');
-const app = express()
+const firebase = require('firebase');
+firebase.initializeApp(firebaseConfig)
 
 app.get('/screams', (req, res) => {
     admin
@@ -55,8 +60,25 @@ app.post('/screams', (req, res) => {
     });
 });
 
-//
+//Sinup route
+app.post('/signup', (req, res) => {
+    const newUser = {
+        email: req.body.email,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword,
+        handle: req.body.handle,
+    };
 
-// https://baseurl.com/api/
+    firebase.auth().createUserWithEmailAndPassword(newUser.email, newUser.password)
+        .then(data => {
+            return res
+                .status(201)
+                .json({ message: `user ${data.user.uid} signed up successfully` });
+         })
+         .catch(err => {
+             console.error(err);
+             return res.status(500).json({ error: err.code });
+         })
+})
 
 exports.api = functions.https.onRequest(app);
