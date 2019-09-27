@@ -1,25 +1,32 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+var serviceAccount = require('./util/serviceAccountKey.json');
+var dbURL = require('./util/dbURL');
+
 const app = require('express')();
-admin.initializeApp();
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: dbURL 
+});
 
 const firebaseConfig = {
-    apiKey: "xxxxxxx",
-    authDomain: "xxxxxxx",
-    databaseURL: "xxxxxxx",
-    projectId: "xxxxxxx",
-    storageBucket: "xxxxxxx",
-    messagingSenderId: "xxxxxxx",
-    appId: "xxxxxxx"
+    apiKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    authDomain: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    databaseURL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    projectId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    storageBucket: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    messagingSenderId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    appId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   };
 
 const firebase = require('firebase');
 firebase.initializeApp(firebaseConfig)
 
+const db = admin.firestore();
+
 app.get('/screams', (req, res) => {
-    admin
-        .firestore()
+    db
         .collection('screams')
         .orderBy('createdAt', 'desc')
         .get()
@@ -47,17 +54,16 @@ app.post('/screams', (req, res) => {
         createdAt: new Date().toISOString()
     };
 
-    admin
-    .firestore()
-    .collection('screams')
-    .add(newScream)
-    .then((doc) => {
-        res.json({ message: `document ${doc.id} created successfully`});
-    })
-    .catch((err) => {
-        res.status(500).json( { error: 'something went wrong'});
-        console.error(err);
-    });
+    db
+        .collection('screams')
+        .add(newScream)
+        .then((doc) => {
+            res.json({ message: `document ${doc.id} created successfully`});
+        })
+        .catch((err) => {
+            res.status(500).json( { error: 'something went wrong'});
+            console.error(err);
+        });
 });
 
 //Sinup route
@@ -69,16 +75,46 @@ app.post('/signup', (req, res) => {
         handle: req.body.handle,
     };
 
-    firebase.auth().createUserWithEmailAndPassword(newUser.email, newUser.password)
-        .then(data => {
-            return res
-                .status(201)
-                .json({ message: `user ${data.user.uid} signed up successfully` });
-         })
-         .catch(err => {
-             console.error(err);
-             return res.status(500).json({ error: err.code });
-         })
-})
+    let token, userId;
+    db.doc(`/users/${newUser.handle}`)
+        .get()
+        .then((doc) => {
+            if(doc.exists){
+                return res.status(400).json({ handle: 'this handle is already taken'});
+            } else {
+                return firebase
+        .auth()
+        .createUserWithEmailAndPassword(newUser.email, newUser.password);
+        }
+    })
+        .then((data) => {
+            userId = data.user.uid;
+            return data.user.getIdToken();
+    })
+        .then((idToken) => {
+            token = idToken;
+            const userCredentials = {
+                handle: newUser.handle,
+                email: newUser.email,
+                createdAt: new Date().toISOString(),
+                userId
+        };
+        db.doc(`/users/${newUser.handle}`).set(userCredentials);
+    })
+    .then(() => {
+        return res.status(201).json({ token });
+    })
+    .catch((err) => {
+        console.error(err);
+        if(err.code === 'auth/email-already-in-use'){
+            return res.status(400).json({ email: 'Email is already is use' })
+        } else {
+            return res.status(500).json({ error: err.code });
+        }
+        
+    })
+
+});
+//45:30
 
 exports.api = functions.https.onRequest(app);
