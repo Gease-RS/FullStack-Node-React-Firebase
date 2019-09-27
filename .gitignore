@@ -7,6 +7,7 @@ yarn-error.log*
 firebase-debug.log*
 serviceAccountKey.json
 dbURL.js
+firebaseConfig.js
 
 # Firebase cache
 .firebase/
