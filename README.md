@@ -42,3 +42,7 @@ var serviceAccount = require("./util/serviceAccountKey.json");
 
 npm install dotenv
 
+npm install fiebase
+
+npm install --save busboy
+https://github.com/mscdex/busboy#readme

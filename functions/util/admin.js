@@ -5,7 +5,8 @@ var dbURL = require('./dbURL');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: dbURL 
+    databaseURL: dbURL,
+    storageBucket: "fullstack-node-react-firebase.appspot.com"
   });
 
 const db = admin.firestore();

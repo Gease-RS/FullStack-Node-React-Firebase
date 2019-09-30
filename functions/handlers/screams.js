@@ -13,7 +13,7 @@ exports.getAllScreams = (req, res) => {
                 userHandle: doc.data().userHandle,
                 createdAt: doc.data().createdAt,
                 commentCount: doc.data().commentCount,
-                //likeCount: doc.data(),likeCount
+                likeCount: doc.data(),likeCount
             });
         });
         return res.json(screams);
@@ -32,7 +32,9 @@ exports.postOneScream = (req, res) => {
     const newScream = {
         body: req.body.body,
         userHandle: req.user.handle,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        likeCount: 0,
+        commentCount: 0
     };
 
     db.collection('screams')
