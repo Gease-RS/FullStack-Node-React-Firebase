@@ -5,7 +5,12 @@ const FBAuth = require('./util/fbAuth');
 const cors = require('cors');
 app.use(cors());
 
-const { getAllScreams, postOneScream } = require('./handlers/screams');
+const { 
+    getAllScreams, 
+    postOneScream,
+    getScream
+ } = require('./handlers/screams');
+ 
 const { 
     signup, 
     login, 
@@ -17,7 +22,11 @@ const {
 // Screams routes
 app.get('/screams', getAllScreams);
 app.post('/scream', FBAuth, postOneScream);
-
+app.get('/scream/:screamId', getScream);
+//Todo delete scream
+//Todo like a scream
+//Todo unlike a scream
+//Todo comment on scream
 
 // Users route
 app.post('/signup', signup);
