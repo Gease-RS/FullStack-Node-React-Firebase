@@ -9,7 +9,9 @@ const {
     getAllScreams, 
     postOneScream,
     getScream,
-    commentOnScream
+    commentOnScream,
+    likeScream,
+    unlikeScream
  } = require('./handlers/screams');
 
 const { 
@@ -25,9 +27,8 @@ app.get('/screams', getAllScreams);
 app.post('/scream', FBAuth, postOneScream);
 app.get('/scream/:screamId', getScream);
 //Todo delete scream
-//Todo like a scream
-//Todo unlike a scream
-//Todo comment on scream
+app.get('/scream/:screamId/like', FBAuth, likeScream);
+app.get('/scream/:screamId/unlike', FBAuth, unlikeScream);
 app.post('/scream/:screamId/comment', FBAuth, commentOnScream);
 
 // Users route
