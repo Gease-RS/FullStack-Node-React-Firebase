@@ -5,28 +5,28 @@ const FBAuth = require('./util/fbAuth');
 const cors = require('cors');
 app.use(cors());
 
-const { 
-    getAllScreams, 
-    postOneScream,
-    getScream,
-    commentOnScream,
-    likeScream,
-    unlikeScream,
-    deleteScream
-    
- } = require('./handlers/screams');
+const { db } = require('./util/admin');
 
-const { 
-    signup, 
-    login, 
-    uploadImage, 
-    addUserDetails,
-    getAuthenticatedUser,
-    getUserDetails,
-    markNotificationsRead
+const {
+  getAllScreams,
+  postOneScream,
+  getScream,
+  commentOnScream,
+  likeScream,
+  unlikeScream,
+  deleteScream
+} = require('./handlers/screams');
+const {
+  signup,
+  login,
+  uploadImage,
+  addUserDetails,
+  getAuthenticatedUser,
+  getUserDetails,
+  markNotificationsRead
 } = require('./handlers/users');
 
-// Screams routes
+// Scream routes
 app.get('/screams', getAllScreams);
 app.post('/scream', FBAuth, postOneScream);
 app.get('/scream/:screamId', getScream);
@@ -35,12 +35,12 @@ app.get('/scream/:screamId/like', FBAuth, likeScream);
 app.get('/scream/:screamId/unlike', FBAuth, unlikeScream);
 app.post('/scream/:screamId/comment', FBAuth, commentOnScream);
 
-// Users route
+// users routes
 app.post('/signup', signup);
 app.post('/login', login);
 app.post('/user/image', FBAuth, uploadImage);
 app.post('/user', FBAuth, addUserDetails);
-app.get('/user' , FBAuth, getAuthenticatedUser);
+app.get('/user', FBAuth, getAuthenticatedUser);
 app.get('/user/:handle', getUserDetails);
 app.post('/notifications', FBAuth, markNotificationsRead);
 
@@ -54,7 +54,10 @@ exports.createNotificationOnLike = functions
       .doc(`/screams/${snapshot.data().screamId}`)
       .get()
       .then((doc) => {
-        if (doc.exists && doc.data().userHandle !== snapshot.data().userHandle) {
+        if (
+          doc.exists &&
+          doc.data().userHandle !== snapshot.data().userHandle
+        ) {
           return db.doc(`/notifications/${snapshot.id}`).set({
             createdAt: new Date().toISOString(),
             recipient: doc.data().userHandle,
@@ -65,14 +68,12 @@ exports.createNotificationOnLike = functions
           });
         }
       })
-      .catch((err) =>
-          console.error(err));
+      .catch((err) => console.error(err));
   });
-
 exports.deleteNotificationOnUnLike = functions
-.region('us-central1')
-.firestore.document('likes/{id}')
-.onDelete((snapshot) => {
+  .region('us-central1')
+  .firestore.document('likes/{id}')
+  .onDelete((snapshot) => {
     return db
       .doc(`/notifications/${snapshot.id}`)
       .delete()
@@ -81,7 +82,6 @@ exports.deleteNotificationOnUnLike = functions
         return;
       });
   });
-  
 exports.createNotificationOnComment = functions
   .region('us-central1')
   .firestore.document('comments/{id}')
@@ -89,8 +89,11 @@ exports.createNotificationOnComment = functions
     return db
       .doc(`/screams/${snapshot.data().screamId}`)
       .get()
-      .then((doc ) => {
-        if (doc.exists && doc.data().userHandle !== snapshot.data().userHandle) {
+      .then((doc) => {
+        if (
+          doc.exists &&
+          doc.data().userHandle !== snapshot.data().userHandle
+        ) {
           return db.doc(`/notifications/${snapshot.id}`).set({
             createdAt: new Date().toISOString(),
             recipient: doc.data().userHandle,
@@ -102,12 +105,12 @@ exports.createNotificationOnComment = functions
         }
       })
       .catch((err) => {
-          console.error(err);
-          return;
-       });
+        console.error(err);
+        return;
+      });
   });
 
-  exports.onUserImageChange = functions
+exports.onUserImageChange = functions
   .region('us-central1')
   .firestore.document('/users/{userId}')
   .onUpdate((change) => {
@@ -130,7 +133,7 @@ exports.createNotificationOnComment = functions
     } else return true;
   });
 
-  exports.onScreamDelete = functions
+exports.onScreamDelete = functions
   .region('us-central1')
   .firestore.document('/screams/{screamId}')
   .onDelete((snapshot, context) => {
